@@ -1,0 +1,29 @@
+{
+    "name": "container-di",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "dist/container-di.umd.cjs",
+    "module": "dist/container-di.js",
+    "exports": {
+        ".": {
+            "types": "./dist/container-di.d.ts",
+            "import": "./dist/container-di.js",
+            "require": "./dist/container-di.umd.cjs"
+        }
+    },
+    "files": ["dist"],
+    "scripts": {
+        "start": "vite",
+        "build": "tsc && vite build",
+        "test": "vitest run",
+        "format": "npx @biomejs/biome check --write",
+        "lint": "npx @biomejs/biome ci ."
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.9.4",
+        "typescript": "~5.6.3",
+        "vite": "^6.1.0",
+        "vite-plugin-dts": "^4.5.0",
+        "vitest": "^3.0.5"
+    }
+}
