@@ -22,12 +22,19 @@ import { InMemoryContainer } from 'container-di';
 
 const container = InMemoryContainer.make();
 
-// Store a value
+// Store values
 container.set('user', { name: 'John Doe' });
 
-// Retrieve a value
+// Retrieve values
 const user = container.get('user');
 console.log(user.name); // 'John Doe'
+
+// Store functions
+container['sum'] = (a: number, b: number) => a + b;
+
+// Retrieve functions
+const sum = container['sum'];
+sum(1, 2); // 3
 ```
 
 ## Container Types
