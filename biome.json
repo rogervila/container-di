@@ -42,7 +42,8 @@
             "complexity": {
                 "useLiteralKeys": "off",
                 "noForEach": "off",
-                "noBannedTypes": "off"
+                "noBannedTypes": "off",
+                "noThisInStatic": "off"
             },
             "correctness": {
                 "noUnusedImports": "warn"

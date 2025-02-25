@@ -1,5 +1,5 @@
 // src/container-di.test.ts
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, expectTypeOf, test } from 'vitest';
 import {
     ContainerInterface,
     InMemoryContainer,
@@ -29,16 +29,22 @@ describe.each(implementations)('Container', (Implementation) => {
         expect(container.has('foo')).toBe(true);
         // @ts-expect-error ts(7052)
         expect(container['foo']).toBe(bar.toString());
+        // @ts-expect-error ts(2349)
+        expectTypeOf(container.get('foo')).toBeString();
 
         container.set('foo', bar);
         expect(container.has('foo')).toBe(true);
         expect(container.get('foo')).toBe(bar);
+        // @ts-expect-error ts(2349)
+        expectTypeOf(container.get('foo')).toBeNumber();
 
         const baz = [Math.random(), Math.random(), Math.random()];
 
         container.set('foo', baz);
         expect(container.has('foo')).toBe(true);
         expect(container.get('foo')).toEqual(baz);
+        // @ts-expect-error ts(2349)
+        expectTypeOf(container.get('foo')).toBeArray();
     });
 
     test(`${Implementation.name} > set and get callable values`, () => {
@@ -46,11 +52,53 @@ describe.each(implementations)('Container', (Implementation) => {
         expect(container.has('foo')).toBe(true);
 
         const result = container.get('foo');
-        expect(typeof result).toBe('function');
+        // @ts-expect-error ts(2349)
+        expectTypeOf(result).toBeFunction();
 
         const a = Math.random();
         const b = Math.random();
 
         expect(result(a, b)).toEqual(a + b);
+    });
+});
+
+const storageImplementations: Storage[] = [localStorage, sessionStorage];
+
+describe.each(storageImplementations)('Storage', (Implementation) => {
+    let storage: Storage;
+    let container: ContainerInterface;
+
+    beforeEach(() => {
+        storage = Implementation;
+        container = Implementation === localStorage ? LocalStorageContainer.make() : SessionStorageContainer.make();
+    });
+
+    test(`${Implementation === localStorage ? 'localStorage' : 'sessionStorage'} > handle non-callable values`, () => {
+        const key = Math.random().toString();
+        const value = Math.random().toString();
+
+        container.set(key, value);
+        expect(container.has(key)).toBe(true);
+
+        expect(container.get(key)).toEqual(value);
+        expect(storage.getItem(key)).toEqual(`"${value}"`);
+
+        storage.removeItem(key);
+        expect(container.has(key)).toBe(false);
+    });
+
+    test(`${Implementation === localStorage ? 'localStorage' : 'sessionStorage'} > handle callable values`, () => {
+        const key = Math.random().toString();
+        const value = (a: number, b: number) => a + b;
+
+        container.set(key, value);
+        expect(container.has(key)).toBe(true);
+
+        // @ts-expect-error ts(2349)
+        expectTypeOf(container.get(key)).toBeFunction();
+        expect(storage.getItem(key)).toEqual(`return (${value.toString()})`);
+
+        storage.removeItem(key);
+        expect(container.has(key)).toBe(false);
     });
 });

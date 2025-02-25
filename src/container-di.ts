@@ -34,8 +34,8 @@ export interface ContainerInterface {
 class ContainerProxy {
     [id: string]: any;
 
-    static make(): InMemoryContainer {
-        return new Proxy(new InMemoryContainer(), {
+    static make<T extends ContainerInterface>(this: new () => T): T {
+        return new Proxy(new this(), {
             get(target, prop) {
                 if (prop in target) {
                     // @ts-expect-error ts(7052) Access methods or properties of Foo
