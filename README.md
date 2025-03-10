@@ -39,6 +39,8 @@ sum(1, 2); // 3
 
 ## Container Types
 
+> ⚠️ Storage availability is checked at runtime. If the storage is not available, `ContainerException` will be thrown.
+
 ### InMemoryContainer
 Runtime storage for temporary dependencies.
 

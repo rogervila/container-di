@@ -78,6 +78,13 @@ export class InMemoryContainer extends ContainerProxy implements ContainerInterf
 }
 
 export class SessionStorageContainer extends ContainerProxy implements ContainerInterface {
+    constructor() {
+        super();
+        if (!sessionStorage) {
+            throw new ContainerException('Session storage is not available');
+        }
+    }
+
     get(id: string): any {
         if (!this.has(id)) {
             throw new NotFoundException();
@@ -111,6 +118,13 @@ export class SessionStorageContainer extends ContainerProxy implements Container
 }
 
 export class LocalStorageContainer extends ContainerProxy implements ContainerInterface {
+    constructor() {
+        super();
+        if (!localStorage) {
+            throw new ContainerException('Local storage is not available');
+        }
+    }
+
     get(id: string): any {
         if (!this.has(id)) {
             throw new NotFoundException();

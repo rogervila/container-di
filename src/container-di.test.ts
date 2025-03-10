@@ -102,3 +102,23 @@ describe.each(storageImplementations)('Storage', (Implementation) => {
         expect(container.has(key)).toBe(false);
     });
 });
+
+describe('Storage not available', () => {
+    test('should throw error if localStorage is not available', () => {
+        const localStorage = window.localStorage;
+        window.localStorage = undefined as any;
+        const expectedError = 'Local storage is not available';
+        expect(() => new LocalStorageContainer()).toThrowError(expectedError);
+        expect(() => LocalStorageContainer.make()).toThrowError(expectedError);
+        window.localStorage = localStorage;
+    });
+
+    test('should throw error if sessionStorage is not available', () => {
+        const sessionStorage = window.sessionStorage;
+        window.sessionStorage = undefined as any;
+        const expectedError = 'Session storage is not available';
+        expect(() => new SessionStorageContainer()).toThrowError(expectedError);
+        expect(() => SessionStorageContainer.make()).toThrowError(expectedError);
+        window.sessionStorage = sessionStorage;
+    });
+});

@@ -1,6 +1,9 @@
 {
     "name": "container-di",
-    "version": "1.0.1",
+    "version": "1.0.2",
+    "description": "A lightweight Dependency Injection (DI) container library for TypeScript with flexible storage mechanisms",
+    "author": "Roger Vilà",
+    "license": "MIT",
     "type": "module",
     "main": "dist/container-di.umd.cjs",
     "module": "dist/container-di.js",
@@ -21,10 +24,10 @@
     },
     "devDependencies": {
         "@biomejs/biome": "1.9.4",
-        "happy-dom": "^17.1.8",
+        "happy-dom": "^17.4.3",
         "typescript": "~5.6.3",
-        "vite": "^6.2.0",
-        "vite-plugin-dts": "^4.5.0",
-        "vitest": "^3.0.7"
+        "vite": "^6.2.1",
+        "vite-plugin-dts": "^4.5.3",
+        "vitest": "^3.0.8"
     }
 }
