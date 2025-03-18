@@ -35,24 +35,25 @@ describe.each(implementations)('Container', (Implementation) => {
         container.set('foo', bar);
         expect(container.has('foo')).toBe(true);
         expect(container.get('foo')).toBe(bar);
-        // @ts-expect-error ts(2349)
-        expectTypeOf(container.get('foo')).toBeNumber();
+
+        expectTypeOf(container.get<typeof bar>('foo')).toBeNumber();
 
         const baz = [Math.random(), Math.random(), Math.random()];
 
         container.set('foo', baz);
         expect(container.has('foo')).toBe(true);
         expect(container.get('foo')).toEqual(baz);
-        // @ts-expect-error ts(2349)
-        expectTypeOf(container.get('foo')).toBeArray();
+
+        expectTypeOf(container.get<typeof baz>('foo')).toBeArray();
     });
 
     test(`${Implementation.name} > set and get callable values`, () => {
-        container.set('foo', (a: number, b: number) => a + b);
+        const value = (a: number, b: number): number => a + b;
+
+        container.set('foo', value);
         expect(container.has('foo')).toBe(true);
 
-        const result = container.get('foo');
-        // @ts-expect-error ts(2349)
+        const result = container.get<typeof value>('foo');
         expectTypeOf(result).toBeFunction();
 
         const a = Math.random();
@@ -89,13 +90,12 @@ describe.each(storageImplementations)('Storage', (Implementation) => {
 
     test(`${Implementation === localStorage ? 'localStorage' : 'sessionStorage'} > handle callable values`, () => {
         const key = Math.random().toString();
-        const value = (a: number, b: number) => a + b;
+        const value = (a: number, b: number): number => a + b;
 
         container.set(key, value);
         expect(container.has(key)).toBe(true);
 
-        // @ts-expect-error ts(2349)
-        expectTypeOf(container.get(key)).toBeFunction();
+        expectTypeOf(container.get<typeof value>(key)).toBeFunction();
         expect(storage.getItem(key)).toEqual(`return (${value.toString()})`);
 
         storage.removeItem(key);
