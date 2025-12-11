@@ -1,14 +1,8 @@
 // src/container-di.test.ts
 import { beforeEach, describe, expect, expectTypeOf, test } from 'vitest';
-import {
-    ContainerInterface,
-    InMemoryContainer,
-    LocalStorageContainer,
-    NotFoundException,
-    SessionStorageContainer,
-} from './container-di';
+import { Container, ContainerInterface, NotFoundException } from './container-di';
 
-const implementations = [InMemoryContainer, SessionStorageContainer, LocalStorageContainer];
+const implementations = [Container];
 
 describe.each(implementations)('Container', (Implementation) => {
     let container: ContainerInterface;
@@ -47,78 +41,58 @@ describe.each(implementations)('Container', (Implementation) => {
         expectTypeOf(container.get<typeof baz>('foo')).toBeArray();
     });
 
-    test(`${Implementation.name} > set and get callable values`, () => {
-        const value = (a: number, b: number): number => a + b;
+    test(`${Implementation.name} > set and get callable values with container`, () => {
+        class Service {
+            constructor(private token: string) {}
 
-        container.set('foo', value);
-        expect(container.has('foo')).toBe(true);
+            getToken(): string {
+                return this.token;
+            }
+        }
 
-        const result = container.get<typeof value>('foo');
-        expectTypeOf(result).toBeFunction();
+        const token = Math.random().toString();
 
-        const a = Math.random();
-        const b = Math.random();
+        const callable = (c: ContainerInterface): Service => new Service(c.get('token'));
 
-        expect(result(a, b)).toEqual(a + b);
-    });
-});
+        container.set('token', token);
+        container.set('service', callable);
+        expect(container.has('service')).toBe(true);
 
-const storageImplementations: Storage[] = [localStorage, sessionStorage];
+        const serviceA = container.get<Service>('service');
+        expect(serviceA).toBeInstanceOf(Service);
 
-describe.each(storageImplementations)('Storage', (Implementation) => {
-    let storage: Storage;
-    let container: ContainerInterface;
+        expect(serviceA.getToken()).toEqual(token);
 
-    beforeEach(() => {
-        storage = Implementation;
-        container = Implementation === localStorage ? LocalStorageContainer.make() : SessionStorageContainer.make();
-    });
-
-    test(`${Implementation === localStorage ? 'localStorage' : 'sessionStorage'} > handle non-callable values`, () => {
-        const key = Math.random().toString();
-        const value = Math.random().toString();
-
-        container.set(key, value);
-        expect(container.has(key)).toBe(true);
-
-        expect(container.get(key)).toEqual(value);
-        expect(storage.getItem(key)).toEqual(`"${value}"`);
-
-        storage.removeItem(key);
-        expect(container.has(key)).toBe(false);
+        const serviceB = container.get<Service>('service');
+        expect(serviceB).toBe(serviceA);
     });
 
-    test(`${Implementation === localStorage ? 'localStorage' : 'sessionStorage'} > handle callable values`, () => {
-        const key = Math.random().toString();
-        const value = (a: number, b: number): number => a + b;
+    test(`${Implementation.name} > set and get callable values with container via proxy`, () => {
+        class Service {
+            constructor(private token: string) {}
 
-        container.set(key, value);
-        expect(container.has(key)).toBe(true);
+            getToken(): string {
+                return this.token;
+            }
+        }
 
-        expectTypeOf(container.get<typeof value>(key)).toBeFunction();
-        expect(storage.getItem(key)).toEqual(`return (${value.toString()})`);
+        const token = Math.random().toString();
 
-        storage.removeItem(key);
-        expect(container.has(key)).toBe(false);
-    });
-});
+        const callable = (c: ContainerInterface): Service => new Service(c.get('token'));
 
-describe('Storage not available', () => {
-    test('should throw error if localStorage is not available', () => {
-        const localStorage = window.localStorage;
-        window.localStorage = undefined as any;
-        const expectedError = 'Local storage is not available';
-        expect(() => new LocalStorageContainer()).toThrowError(expectedError);
-        expect(() => LocalStorageContainer.make()).toThrowError(expectedError);
-        window.localStorage = localStorage;
-    });
+        // @ts-expect-error ts(7052)
+        container['token'] = token;
+        // @ts-expect-error ts(7052)
+        container['service'] = callable;
+        expect(container.has('service')).toBe(true);
+        // @ts-expect-error ts(7052)
+        const serviceA: Service = container['service'];
+        expect(serviceA).toBeInstanceOf(Service);
 
-    test('should throw error if sessionStorage is not available', () => {
-        const sessionStorage = window.sessionStorage;
-        window.sessionStorage = undefined as any;
-        const expectedError = 'Session storage is not available';
-        expect(() => new SessionStorageContainer()).toThrowError(expectedError);
-        expect(() => SessionStorageContainer.make()).toThrowError(expectedError);
-        window.sessionStorage = sessionStorage;
+        expect(serviceA.getToken()).toEqual(token);
+
+        // @ts-expect-error ts(7052)
+        const serviceB: Service = container['service'];
+        expect(serviceB).toBe(serviceA);
     });
 });

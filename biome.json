@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -8,14 +8,7 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "ignore": [
-            "**/.git/**",
-            "**/.DS_Store/**",
-            "**/node_modules/**",
-            "**/package-lock.json",
-            "**/dist/**",
-            "**/.pnpm-store/**"
-        ]
+        "includes": ["**", "!**/.git", "!**/.DS_Store", "!**/node_modules", "!**/package-lock.json", "!**/dist"]
     },
     "formatter": {
         "enabled": true,
@@ -23,8 +16,12 @@
         "indentWidth": 4,
         "lineWidth": 120
     },
-    "organizeImports": {
-        "enabled": true
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
     },
     "linter": {
         "enabled": true,
