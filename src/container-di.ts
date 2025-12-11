@@ -28,7 +28,7 @@ export interface ContainerInterface {
 
     has(id: string): boolean;
 
-    set<T>(id: string, value: T): void;
+    set<T>(id: string, value: T | ((c: ContainerInterface) => T)): void;
 }
 
 class ContainerProxy {
@@ -36,21 +36,35 @@ class ContainerProxy {
 
     static make<T extends ContainerInterface>(this: new () => T): T {
         return new Proxy(new this(), {
-            get<T>(target: any, prop: any): T {
+            get<T>(target: any, prop: string): T {
+                let value: T | undefined;
+
                 if (prop in target) {
-                    return target[prop];
+                    value = target[prop];
+                } else {
+                    value = target.get(prop);
                 }
-                return target.get(prop);
+
+                if (value === undefined) {
+                    throw new NotFoundException();
+                }
+
+                return value;
             },
-            set<T>(target: any, prop: any, value: T): boolean {
-                target.set(prop, value);
+            set<T>(target: any, prop: any, value: T | ((c: ContainerInterface) => T)): boolean {
+                // Singleton
+                if (typeof value === 'function') {
+                    target.set(prop, (value as (c: ContainerInterface) => T)(target));
+                } else {
+                    target.set(prop, value);
+                }
                 return true;
             },
         });
     }
 }
 
-export class InMemoryContainer extends ContainerProxy implements ContainerInterface {
+export class Container extends ContainerProxy implements ContainerInterface {
     private items: Map<string, any> = new Map<string, any>();
 
     get<T>(id: string): T {
@@ -59,7 +73,13 @@ export class InMemoryContainer extends ContainerProxy implements ContainerInterf
         }
 
         try {
-            return this.items.get(id);
+            const item: T | undefined = this.items.get(id);
+
+            if (item === undefined) {
+                throw new NotFoundException();
+            }
+
+            return item;
         } catch (e) {
             throw new ContainerException((e as Error).message);
         }
@@ -69,88 +89,13 @@ export class InMemoryContainer extends ContainerProxy implements ContainerInterf
         return this.items.has(id);
     }
 
-    set<T>(id: string, value: T): void {
+    set<T>(id: string, value: T | ((c: ContainerInterface) => T)): void {
+        // Singleton
+        if (typeof value === 'function') {
+            this.items.set(id, (value as (c: ContainerInterface) => T)(this));
+            return;
+        }
+
         this.items.set(id, value);
-    }
-}
-
-export class SessionStorageContainer extends ContainerProxy implements ContainerInterface {
-    constructor() {
-        super();
-        if (!sessionStorage) {
-            throw new ContainerException('Session storage is not available');
-        }
-    }
-
-    get<T>(id: string): T {
-        if (!this.has(id)) {
-            throw new NotFoundException();
-        }
-
-        const item = sessionStorage.getItem(id);
-
-        if (!item) {
-            throw new ContainerException();
-        }
-
-        try {
-            if (item.startsWith('return (')) {
-                return new Function(item)();
-            }
-
-            return JSON.parse(item);
-        } catch (e) {
-            throw new ContainerException((e as Error).message);
-        }
-    }
-
-    has(id: string): boolean {
-        return !!sessionStorage.getItem(id);
-    }
-
-    set<T>(id: string, value: T): void {
-        const storedValue = value instanceof Function ? `return (${value.toString()})` : JSON.stringify(value);
-        sessionStorage.setItem(id, storedValue);
-    }
-}
-
-export class LocalStorageContainer extends ContainerProxy implements ContainerInterface {
-    constructor() {
-        super();
-        if (!localStorage) {
-            throw new ContainerException('Local storage is not available');
-        }
-    }
-
-    get<T>(id: string): T {
-        if (!this.has(id)) {
-            throw new NotFoundException();
-        }
-
-        const item = localStorage.getItem(id);
-
-        if (!item) {
-            throw new ContainerException();
-        }
-
-        try {
-            if (item.startsWith('return (')) {
-                return new Function(item)();
-            }
-
-            return JSON.parse(item);
-        } catch (e) {
-            throw new ContainerException((e as Error).message);
-        }
-    }
-
-    has(id: string): boolean {
-        return !!localStorage.getItem(id);
-    }
-
-    set<T>(id: string, value: T): void {
-        const storedValue = value instanceof Function ? `return (${value.toString()})` : JSON.stringify(value);
-
-        localStorage.setItem(id, storedValue);
     }
 }
