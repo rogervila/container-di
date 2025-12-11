@@ -39,6 +39,17 @@ describe.each(implementations)('Container', (Implementation) => {
         expect(container.get('foo')).toEqual(baz);
 
         expectTypeOf(container.get<typeof baz>('foo')).toBeArray();
+
+        const xyz = { a: Math.random(), b: Math.random() };
+
+        container.set('xyz', xyz);
+        expect(container.has('xyz')).toBe(true);
+        expect(container.get('xyz')).toEqual(xyz);
+        const result = container.get<typeof xyz>('xyz');
+        expect(result.a).toEqual(xyz.a);
+        expect(result.b).toEqual(xyz.b);
+
+        expectTypeOf(result).toBeObject();
     });
 
     test(`${Implementation.name} > set and get callable values with container`, () => {
@@ -65,6 +76,7 @@ describe.each(implementations)('Container', (Implementation) => {
 
         const serviceB = container.get<Service>('service');
         expect(serviceB).toBe(serviceA);
+        expect(serviceA === serviceB).toBe(true);
     });
 
     test(`${Implementation.name} > set and get callable values with container via proxy`, () => {
@@ -94,5 +106,6 @@ describe.each(implementations)('Container', (Implementation) => {
         // @ts-expect-error ts(7052)
         const serviceB: Service = container['service'];
         expect(serviceB).toBe(serviceA);
+        expect(serviceA === serviceB).toBe(true);
     });
 });

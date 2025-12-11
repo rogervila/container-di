@@ -11,7 +11,7 @@ Version 2 introduces a simplified architecture with a focus on the **singleton p
 | v1 | v2 |
 |---|---|
 | Multiple storage containers (`InMemoryContainer`, `SessionStorageContainer`, `LocalStorageContainer`) | Single `Container` class |
-| Storage-specific implementations | In-memory only (simpler, more predictable) |
+| Functions stored as-is | Functions are automatically invoked and require a container instance as unique parameter |
 
 ### Singleton Pattern
 
@@ -26,7 +26,7 @@ This pattern ensures services are instantiated only once, providing consistent b
 ## Quick Start
 
 ```typescript
-import { Container } from 'container-di';
+import { Container, ContainerInterface } from 'container-di';
 
 const container = Container.make();
 
@@ -36,6 +36,19 @@ container.set('config', { apiUrl: 'https://api.example.com' });
 // Retrieve values
 const config = container.get('config');
 console.log(config.apiUrl); // 'https://api.example.com'
+
+// Store singletons
+class Service {
+    constructor(private url: string) {}
+}
+
+container.set('service', (c: ContainerInterface) => new Service(c.get('config').apiUrl));
+
+// Returns the same instance every time
+const service = container.get('service');
+const service2 = container.get('service');
+
+console.log(service === service2); // true
 ```
 
 ## Usage Examples
