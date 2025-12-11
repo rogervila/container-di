@@ -1,5 +1,9 @@
 # Container DI
 
+[![npm version](https://badge.fury.io/js/container-di.svg "Current npm version")](https://badge.fury.io/js/container-di "View on npm")
+[![npm downloads](https://img.shields.io/npm/dt/container-di.svg "Total downloads")](https://www.npmjs.com/package/container-di "View on npm")
+[![npm license](https://img.shields.io/npm/l/container-di.svg "License")](https://www.npmjs.com/package/container-di "View on npm")
+
 A lightweight Dependency Injection (DI) container library for TypeScript with singleton support.
 
 ## What's New in v2
